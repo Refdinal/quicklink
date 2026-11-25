@@ -605,15 +605,14 @@ function DayAgenda({ dayKey, events, onBack, onPrev, onNext, onToday, onAdd, onE
                   <div className="agenda-event-actions">
                     {item.type === 'zoom' && item.link && (
                       <a
-                        className="agenda-action-btn"
+                        className="agenda-action-btn agenda-action-link"
                         href={item.link}
                         target="_blank"
                         rel="noreferrer"
                         aria-label="Buka Zoom"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <span className="agenda-action-icon" aria-hidden="true">▶</span>
-                        Zoom
+                        {item.link}
                       </a>
                     )}
                     <a

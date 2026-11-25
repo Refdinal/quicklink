@@ -618,6 +618,17 @@ body {
   margin-top: auto;
 }
 
+.agenda-action-link {
+  flex: 1 1 100%;
+  min-width: 0;
+  justify-content: flex-start;
+  text-align: left;
+  white-space: normal;
+  word-break: break-all;
+  line-height: 1.35;
+  border-radius: 8px;
+}
+
 .agenda-action-btn {
   display: inline-flex;
   align-items: center;
@@ -661,16 +672,10 @@ body {
 }
 
 .agenda-event.compact .agenda-event-actions {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  margin: 0;
-  flex-wrap: nowrap;
+  position: static;
+  flex-wrap: wrap;
   gap: 4px;
-}
-
-.agenda-event.compact .agenda-event-body {
-  padding-right: 96px;
+  margin: 0;
 }
 
 .agenda-event.compact .agenda-action-btn {
@@ -678,6 +683,15 @@ body {
   padding: 3px 8px;
   font-size: 0;
   gap: 0;
+}
+
+.agenda-event.compact .agenda-action-link {
+  flex: 1 1 100%;
+  font-size: 10px;
+  min-height: 0;
+  padding: 2px 6px;
+  white-space: normal;
+  word-break: break-all;
 }
 
 .agenda-event.compact .agenda-action-icon {
