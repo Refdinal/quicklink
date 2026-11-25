@@ -496,6 +496,29 @@ export default function ScheduleApp({ initialMeetings, initialError }) {
 }
 
 const PX_PER_MINUTE = 0.9;
+const WA_NUMBER = '6282397841664';
+
+function buildShareText(item) {
+  const lines = [];
+  const label = item.type === 'zoom' ? 'Zoom Meeting' : 'Rapat';
+  lines.push(`*${label}: ${item.title}*`);
+  lines.push(`Tanggal: ${formatDateLabel(item.dayKey)}`);
+  lines.push(`Waktu: ${timeLabel(item.start_at)}–${timeLabel(item.end_at)}`);
+  if (item.type === 'zoom' && item.link) {
+    lines.push(`Link Zoom: ${item.link}`);
+  } else if (item.location) {
+    lines.push(`Ruang: ${item.location}`);
+  }
+  if (item.notes) {
+    lines.push(`Catatan: ${item.notes}`);
+  }
+  return lines.join('\n');
+}
+
+function waShareUrl(item) {
+  const text = encodeURIComponent(buildShareText(item));
+  return `https://wa.me/${WA_NUMBER}?text=${text}`;
+}
 
 function nowWallClock() {
   const parts = new Intl.DateTimeFormat('en-CA', {
@@ -589,14 +612,27 @@ function DayAgenda({ dayKey, events, onBack, onPrev, onNext, onToday, onAdd, onE
                       <span className="agenda-event-sub">{item.location}</span>
                     )}
                   </button>
-                  <button
-                    type="button"
-                    className="agenda-event-del"
-                    aria-label="Hapus jadwal"
-                    onClick={() => onDelete(item)}
-                  >
-                    Hapus
-                  </button>
+                  <div className="agenda-event-actions">
+                    <a
+                      className="agenda-event-share"
+                      href={waShareUrl(item)}
+                      target="_blank"
+                      rel="noreferrer"
+                      aria-label="Bagikan ke WhatsApp"
+                      title="Bagikan ke WhatsApp"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      Share WA
+                    </a>
+                    <button
+                      type="button"
+                      className="agenda-event-del"
+                      aria-label="Hapus jadwal"
+                      onClick={() => onDelete(item)}
+                    >
+                      Hapus
+                    </button>
+                  </div>
                 </div>
               );
             })}
