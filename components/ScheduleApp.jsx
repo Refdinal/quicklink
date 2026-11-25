@@ -275,7 +275,6 @@ export default function ScheduleApp({ initialMeetings, initialError }) {
               <span>Tema rapat</span>
               <input
                 className="input"
-                placeholder="Contoh: Evaluasi layanan e-Gov"
                 value={form.title}
                 onChange={(e) => updateField('title', e.target.value)}
                 autoComplete="off"
@@ -307,7 +306,6 @@ export default function ScheduleApp({ initialMeetings, initialError }) {
                 <span>Ruangan</span>
                 <input
                   className="input"
-                  placeholder="Contoh: Ruang Rapat Bidang eGov"
                   value={form.location}
                   onChange={(e) => updateField('location', e.target.value)}
                 />
@@ -317,7 +315,6 @@ export default function ScheduleApp({ initialMeetings, initialError }) {
                 <span>Link Zoom</span>
                 <input
                   className="input"
-                  placeholder="https://zoom.us/j/..."
                   value={form.link}
                   onChange={(e) => updateField('link', e.target.value)}
                 />
@@ -360,7 +357,6 @@ export default function ScheduleApp({ initialMeetings, initialError }) {
               <span>Catatan (opsional)</span>
               <input
                 className="input"
-                placeholder="Agenda, peserta, dll."
                 value={form.notes}
                 onChange={(e) => updateField('notes', e.target.value)}
               />
