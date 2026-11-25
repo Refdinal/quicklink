@@ -586,10 +586,11 @@ function DayAgenda({ dayKey, events, onBack, onPrev, onNext, onToday, onAdd, onE
             {events.map((item) => {
               const top = item.startMin * PX_PER_MINUTE;
               const height = Math.max((item.endMin - item.startMin) * PX_PER_MINUTE, 26);
+              const compact = height < 92;
               return (
                 <div
                   key={item.id}
-                  className={`agenda-event ${item.type}`}
+                  className={`agenda-event ${item.type}${compact ? ' compact' : ''}`}
                   style={{ top: `${top}px`, height: `${height}px` }}
                 >
                   <button type="button" className="agenda-event-body" onClick={() => onEdit(item)}>
@@ -597,39 +598,42 @@ function DayAgenda({ dayKey, events, onBack, onPrev, onNext, onToday, onAdd, onE
                     <span className="agenda-event-time">
                       {timeLabel(item.start_at)}–{timeLabel(item.end_at)}
                     </span>
-                    {item.type === 'zoom' && item.link && (
-                      <a
-                        className="agenda-event-link"
-                        href={item.link}
-                        target="_blank"
-                        rel="noreferrer"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        Buka Zoom ↗
-                      </a>
-                    )}
-                    {item.type === 'rapat' && item.location && (
+                    {!compact && item.type === 'rapat' && item.location && (
                       <span className="agenda-event-sub">{item.location}</span>
                     )}
                   </button>
                   <div className="agenda-event-actions">
+                    {item.type === 'zoom' && item.link && (
+                      <a
+                        className="agenda-action-btn"
+                        href={item.link}
+                        target="_blank"
+                        rel="noreferrer"
+                        aria-label="Buka Zoom"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <span className="agenda-action-icon" aria-hidden="true">▶</span>
+                        Zoom
+                      </a>
+                    )}
                     <a
-                      className="agenda-event-share"
+                      className="agenda-action-btn"
                       href={waShareUrl(item)}
                       target="_blank"
                       rel="noreferrer"
                       aria-label="Bagikan ke WhatsApp"
-                      title="Bagikan ke WhatsApp"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      Share WA
+                      <span className="agenda-action-icon" aria-hidden="true">↗</span>
+                      Share
                     </a>
                     <button
                       type="button"
-                      className="agenda-event-del"
+                      className="agenda-action-btn danger"
                       aria-label="Hapus jadwal"
                       onClick={() => onDelete(item)}
                     >
+                      <span className="agenda-action-icon" aria-hidden="true">✕</span>
                       Hapus
                     </button>
                   </div>
