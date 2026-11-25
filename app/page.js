@@ -1,26 +1,26 @@
 import { db } from '@/lib/db';
-import QuickLinks from '@/components/QuickLinks';
+import ScheduleApp from '@/components/ScheduleApp';
 
 export const dynamic = 'force-dynamic';
 
 export default async function Home() {
-  let links = [];
+  let meetings = [];
   let error = '';
 
   try {
     const sql = db();
-    links = await sql`
-      SELECT id, title, url, description, created_at, updated_at
-      FROM links
-      ORDER BY created_at DESC
+    meetings = await sql`
+      SELECT id, title, type, location, link, notes, start_at, end_at, created_at, updated_at
+      FROM meetings
+      ORDER BY start_at ASC
     `;
   } catch (err) {
     error = err.message;
   }
 
   return (
-    <main className="container">
-      <QuickLinks initialLinks={links} initialError={error} />
+    <main className="container wide">
+      <ScheduleApp initialMeetings={meetings} initialError={error} />
     </main>
   );
 }

@@ -1,8 +1,8 @@
 import './globals.css';
 
 export const metadata = {
-  title: 'Quick Link',
-  description: 'Simpan dan akses link favorit dari device mana saja.',
+  title: 'Jadwal Rapat & Zoom',
+  description: 'Kelola jadwal rapat dan zoom meeting dalam tampilan kalender.',
 };
 
 export const viewport = {

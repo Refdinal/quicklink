@@ -29,7 +29,7 @@ export default function LoginPage() {
   return (
     <main className="container center">
       <form className="card login" onSubmit={handleSubmit}>
-        <h1>Quick Link</h1>
+        <h1>Jadwal Rapat &amp; Zoom</h1>
         <p className="muted">Masukkan password untuk melanjutkan.</p>
         <input
           className="input"
