@@ -1,5 +1,13 @@
+import { Poppins } from 'next/font/google';
 import './globals.css';
 import ServiceWorkerRegister from '@/components/ServiceWorkerRegister';
+
+const poppins = Poppins({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600'],
+  variable: '--font-poppins',
+  display: 'swap',
+});
 
 export const metadata = {
   title: 'Jadwal Rapat & Zoom',
@@ -26,12 +34,12 @@ export const viewport = {
   initialScale: 1,
   maximumScale: 1,
   viewportFit: 'cover',
-  themeColor: '#2563eb',
+  themeColor: '#ebefff',
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="id">
+    <html lang="id" className={poppins.variable}>
       <body>
         {children}
         <ServiceWorkerRegister />

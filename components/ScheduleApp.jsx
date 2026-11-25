@@ -121,7 +121,8 @@ export default function ScheduleApp({ initialMeetings, initialError }) {
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [modalOpen, setModalOpen] = useState(false);
-  const [detailKey, setDetailKey] = useState(null);
+  const [view, setView] = useState('month');
+  const [dayKey, setDayKey] = useState(() => keyFromDate(new Date()));
 
   const today = new Date();
   const [cursor, setCursor] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1));
@@ -140,7 +141,12 @@ export default function ScheduleApp({ initialMeetings, initialError }) {
   const days = useMemo(() => monthGrid(cursor.getFullYear(), cursor.getMonth()), [cursor]);
   const todayKey = keyFromDate(today);
 
-  const detailEvents = detailKey ? eventsByDay.get(detailKey) || [] : [];
+  const dayEvents = eventsByDay.get(dayKey) || [];
+
+  function openDay(key) {
+    setDayKey(key);
+    setView('day');
+  }
 
   async function refresh() {
     const res = await fetch('/api/meetings', { cache: 'no-store' });
@@ -166,7 +172,7 @@ export default function ScheduleApp({ initialMeetings, initialError }) {
   function goToday() {
     const now = new Date();
     setCursor(new Date(now.getFullYear(), now.getMonth(), 1));
-    setDetailKey(keyFromDate(now));
+    setDayKey(keyFromDate(now));
   }
 
   function openCreate(dayKey) {
@@ -232,7 +238,7 @@ export default function ScheduleApp({ initialMeetings, initialError }) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Gagal menyimpan jadwal.');
       closeModal();
-      setDetailKey(form.date);
+      setDayKey(form.date);
       await refresh();
     } catch (err) {
       setError(err.message);
@@ -263,8 +269,10 @@ export default function ScheduleApp({ initialMeetings, initialError }) {
   return (
     <div className="schedule">
       <header className="topbar">
-        <div>
-          <h1>Jadwal Rapat &amp; Zoom</h1>
+        <div className="brand">
+          <h1>
+            Jadwal <span className="gradient-word">Rapat</span> &amp; Zoom
+          </h1>
           <p className="muted">
             {meetings.length} jadwal tersimpan · durasi default {formatDuration(DEFAULT_DURATION_MINUTES)}
           </p>
@@ -281,134 +289,92 @@ export default function ScheduleApp({ initialMeetings, initialError }) {
 
       <div className="layout single">
         <section className="calendar card">
-          <div className="cal-head">
-            <h2 className="cal-month">
-              {MONTHS[cursor.getMonth()]} {cursor.getFullYear()}
-            </h2>
-            <div className="cal-nav">
-              <button type="button" className="btn small" onClick={() => goMonth(-1)} aria-label="Bulan sebelumnya">
-                ‹
-              </button>
-              <button type="button" className="btn small" onClick={goToday}>
-                Hari ini
-              </button>
-              <button type="button" className="btn small" onClick={() => goMonth(1)} aria-label="Bulan berikutnya">
-                ›
-              </button>
-            </div>
-          </div>
+          {view === 'month' ? (
+            <>
+              <div className="cal-head">
+                <h2 className="cal-month">
+                  {MONTHS[cursor.getMonth()]} {cursor.getFullYear()}
+                </h2>
+                <div className="cal-nav">
+                  <button type="button" className="btn small" onClick={() => goMonth(-1)} aria-label="Bulan sebelumnya">
+                    ‹
+                  </button>
+                  <button type="button" className="btn small" onClick={goToday}>
+                    Hari ini
+                  </button>
+                  <button type="button" className="btn small" onClick={() => goMonth(1)} aria-label="Bulan berikutnya">
+                    ›
+                  </button>
+                </div>
+              </div>
 
-          <div className="month-weekdays">
-            {WEEKDAYS.map((day) => (
-              <span key={day}>{day}</span>
-            ))}
-          </div>
-          <div className="month-grid">
-            {days.map((day) => {
-              const key = keyFromDate(day);
-              const dayEvents = eventsByDay.get(key) || [];
-              const outside = day.getMonth() !== cursor.getMonth();
-              return (
-                <div
-                  key={key}
-                  className={`month-cell${outside ? ' outside' : ''}${key === todayKey ? ' today' : ''}`}
-                  onClick={() => setDetailKey(key)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      setDetailKey(key);
-                    }
-                  }}
-                >
-                  <div className="cell-head">
-                    <span className="cell-day">{day.getDate()}</span>
-                    <button
-                      type="button"
-                      className="cell-add"
-                      aria-label="Tambah jadwal"
-                      title="Tambah jadwal"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openCreate(key);
+              <div className="month-weekdays">
+                {WEEKDAYS.map((day) => (
+                  <span key={day}>{day}</span>
+                ))}
+              </div>
+              <div className="month-grid">
+                {days.map((day) => {
+                  const key = keyFromDate(day);
+                  const dayItems = eventsByDay.get(key) || [];
+                  const outside = day.getMonth() !== cursor.getMonth();
+                  return (
+                    <div
+                      key={key}
+                      className={`month-cell${outside ? ' outside' : ''}${key === todayKey ? ' today' : ''}`}
+                      onClick={() => openDay(key)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          openDay(key);
+                        }
                       }}
                     >
-                      +
-                    </button>
-                  </div>
-                  <div className="cell-events">
-                    {dayEvents.map((item) => (
-                      <span key={item.id} className={`chip ${item.type}`} title={item.title}>
-                        <span className="chip-time">{timeLabel(item.start_at)}</span>
-                        <span className="chip-title">{item.title}</span>
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                      <div className="cell-head">
+                        <span className="cell-day">{day.getDate()}</span>
+                        <button
+                          type="button"
+                          className="cell-add"
+                          aria-label="Tambah jadwal"
+                          title="Tambah jadwal"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openCreate(key);
+                          }}
+                        >
+                          +
+                        </button>
+                      </div>
+                      <div className="cell-events">
+                        {dayItems.map((item) => (
+                          <span key={item.id} className={`chip ${item.type}`} title={item.title}>
+                            <span className="chip-time">{timeLabel(item.start_at)}</span>
+                            <span className="chip-title">{item.title}</span>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          ) : (
+            <DayAgenda
+              dayKey={dayKey}
+              events={dayEvents}
+              onBack={() => setView('month')}
+              onPrev={() => setDayKey(keyFromDate(addDays(new Date(`${dayKey}T00:00:00`), -1)))}
+              onNext={() => setDayKey(keyFromDate(addDays(new Date(`${dayKey}T00:00:00`), 1)))}
+              onToday={() => setDayKey(keyFromDate(new Date()))}
+              onAdd={() => openCreate(dayKey)}
+              onEdit={openEdit}
+              onDelete={handleDelete}
+            />
+          )}
         </section>
       </div>
-
-      {detailKey && (
-        <div className="overlay" onClick={() => setDetailKey(null)}>
-          <div className="modal detail-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-head">
-              <div>
-                <h2 className="form-title">Detail Jadwal</h2>
-                <p className="muted">{formatDateLabel(detailKey)}</p>
-              </div>
-              <div className="modal-head-actions">
-                <button type="button" className="btn small primary" onClick={() => openCreate(detailKey)}>
-                  + Tambah
-                </button>
-                <button type="button" className="btn small ghost" onClick={() => setDetailKey(null)} aria-label="Tutup">
-                  ✕
-                </button>
-              </div>
-            </div>
-
-            {detailEvents.length === 0 ? (
-              <p className="empty muted">Belum ada jadwal pada hari ini.</p>
-            ) : (
-              <ul className="detail-list">
-                {detailEvents.map((item) => (
-                  <li key={item.id} className={`detail-item ${item.type}`}>
-                    <div className="detail-main">
-                      <div className="detail-time">
-                        {timeLabel(item.start_at)} – {timeLabel(item.end_at)}
-                        <span className={`badge ${item.type}`}>
-                          {item.type === 'zoom' ? 'Zoom' : 'Rapat'}
-                        </span>
-                      </div>
-                      <strong className="detail-title">{item.title}</strong>
-                      {item.type === 'zoom' && item.link && (
-                        <a className="detail-link" href={item.link} target="_blank" rel="noreferrer">
-                          {item.link}
-                        </a>
-                      )}
-                      {item.type === 'rapat' && item.location && (
-                        <span className="detail-sub">{item.location}</span>
-                      )}
-                      {item.notes && <span className="detail-sub">{item.notes}</span>}
-                    </div>
-                    <div className="item-actions">
-                      <button type="button" className="btn small" onClick={() => openEdit(item)}>
-                        Edit
-                      </button>
-                      <button type="button" className="btn small danger" onClick={() => handleDelete(item)}>
-                        Hapus
-                      </button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </div>
-      )}
 
       {modalOpen && (
         <div className="overlay" onClick={closeModal}>
@@ -525,6 +491,123 @@ export default function ScheduleApp({ initialMeetings, initialError }) {
           </form>
         </div>
       )}
+    </div>
+  );
+}
+
+const PX_PER_MINUTE = 0.9;
+
+function nowWallClock() {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: APP_TIME_ZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(new Date());
+  const get = (type) => parts.find((p) => p.type === type)?.value;
+  return {
+    dayKey: `${get('year')}-${get('month')}-${get('day')}`,
+    minutes: Number(get('hour')) * 60 + Number(get('minute')),
+  };
+}
+
+function DayAgenda({ dayKey, events, onBack, onPrev, onNext, onToday, onAdd, onEdit, onDelete }) {
+  const hours = Array.from({ length: 24 }, (_, i) => i);
+  const now = nowWallClock();
+  const showNow = now.dayKey === dayKey;
+
+  return (
+    <div className="agenda">
+      <div className="agenda-head">
+        <div className="agenda-title">
+          <button type="button" className="btn small ghost" onClick={onBack}>
+            ‹ Kalender
+          </button>
+          <div>
+            <h2 className="cal-month">{formatDateLabel(dayKey)}</h2>
+            <p className="muted">{events.length} jadwal</p>
+          </div>
+        </div>
+        <div className="cal-nav">
+          <button type="button" className="btn small" onClick={onPrev} aria-label="Hari sebelumnya">
+            ‹
+          </button>
+          <button type="button" className="btn small" onClick={onToday}>
+            Hari ini
+          </button>
+          <button type="button" className="btn small" onClick={onNext} aria-label="Hari berikutnya">
+            ›
+          </button>
+          <button type="button" className="btn small primary" onClick={onAdd}>
+            + Tambah
+          </button>
+        </div>
+      </div>
+
+      <div className="agenda-scroll">
+        <div className="agenda-grid">
+          <div className="agenda-times">
+            {hours.map((hour) => (
+              <div key={hour} className="agenda-time">
+                {pad(hour)}:00
+              </div>
+            ))}
+          </div>
+          <div className="agenda-slots">
+            {hours.map((hour) => (
+              <div key={hour} className="agenda-hour" />
+            ))}
+            {events.map((item) => {
+              const top = item.startMin * PX_PER_MINUTE;
+              const height = Math.max((item.endMin - item.startMin) * PX_PER_MINUTE, 26);
+              return (
+                <div
+                  key={item.id}
+                  className={`agenda-event ${item.type}`}
+                  style={{ top: `${top}px`, height: `${height}px` }}
+                >
+                  <button type="button" className="agenda-event-body" onClick={() => onEdit(item)}>
+                    <span className="agenda-event-title">{item.title}</span>
+                    <span className="agenda-event-time">
+                      {timeLabel(item.start_at)}–{timeLabel(item.end_at)}
+                    </span>
+                    {item.type === 'zoom' && item.link && (
+                      <a
+                        className="agenda-event-link"
+                        href={item.link}
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        Buka Zoom ↗
+                      </a>
+                    )}
+                    {item.type === 'rapat' && item.location && (
+                      <span className="agenda-event-sub">{item.location}</span>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    className="agenda-event-del"
+                    aria-label="Hapus jadwal"
+                    onClick={() => onDelete(item)}
+                  >
+                    Hapus
+                  </button>
+                </div>
+              );
+            })}
+            {showNow && (
+              <div className="agenda-now" style={{ top: `${now.minutes * PX_PER_MINUTE}px` }}>
+                <span className="agenda-now-dot" />
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
