@@ -549,13 +549,19 @@ body {
 .agenda-event {
   position: absolute;
   border-radius: 8px;
-  padding: 6px 8px 8px;
+  padding: 6px 8px 6px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   border-left: 4px solid transparent;
   box-sizing: border-box;
+  z-index: 1;
+}
+
+.agenda-event:hover,
+.agenda-event:focus-within {
+  z-index: 5;
 }
 
 .agenda-event.rapat {
@@ -571,7 +577,7 @@ body {
 }
 
 .agenda-event-body {
-  flex: 1;
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
   gap: 1px;
@@ -584,6 +590,8 @@ body {
   cursor: pointer;
   padding: 0;
   min-width: 0;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .agenda-event-title {
@@ -615,6 +623,7 @@ body {
   align-items: center;
   gap: 6px;
   margin-top: auto;
+  flex-shrink: 0;
 }
 
 .agenda-action-link {
@@ -624,20 +633,25 @@ body {
   text-align: left;
   white-space: normal;
   word-break: break-all;
-  line-height: 1.35;
+  line-height: 1.3;
   border-radius: 8px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .agenda-action-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
   min-height: 30px;
   padding: 5px 11px;
   border: none;
   border-radius: var(--radius-full);
-  background: rgba(255, 255, 255, 0.24);
-  color: inherit;
+  background: #ffffff;
+  color: var(--color-midnight-ink);
   font: inherit;
   font-family: var(--font-poppins);
   font-size: 12px;
@@ -645,19 +659,22 @@ body {
   line-height: 1;
   text-decoration: none;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background 0.15s, color 0.15s;
 }
 
 .agenda-action-btn:hover {
-  background: rgba(255, 255, 255, 0.42);
+  background: var(--color-midnight-ink);
+  color: #fff;
 }
 
 .agenda-action-btn.danger {
-  background: rgba(255, 255, 255, 0.18);
+  background: #ffffff;
+  color: var(--color-brick);
 }
 
 .agenda-action-btn.danger:hover {
-  background: rgba(255, 255, 255, 0.42);
+  background: var(--color-brick);
+  color: #fff;
 }
 
 .agenda-action-icon {
@@ -685,14 +702,14 @@ body {
 }
 
 .agenda-event.compact .agenda-action-btn {
-  width: 26px;
-  height: 26px;
-  min-height: 26px;
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
   padding: 0;
   justify-content: center;
   font-size: 0;
   gap: 0;
-  background: rgba(255, 255, 255, 0.32);
+  background: #ffffff;
 }
 
 .agenda-event.compact .agenda-action-icon {

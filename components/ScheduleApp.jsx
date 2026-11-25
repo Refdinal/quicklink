@@ -640,7 +640,7 @@ function DayAgenda({ dayKey, events, onBack, onPrev, onNext, onToday, onAdd, onE
               return (
                 <div
                   key={item.id}
-                  className={`agenda-event ${item.type}${compact ? ' compact' : ''}`}
+                  className={`agenda-event ${item.type}${compact ? ' compact' : ' tall'}`}
                   style={{
                     top: `${top}px`,
                     height: `${height}px`,
