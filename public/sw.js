@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jadwal-v1';
+const CACHE_NAME = 'jadwal-v2';
 const PRECACHE_URLS = [
   '/',
   '/login',

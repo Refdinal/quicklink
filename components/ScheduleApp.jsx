@@ -121,6 +121,7 @@ export default function ScheduleApp({ initialMeetings, initialError }) {
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [modalOpen, setModalOpen] = useState(false);
+  const [detailItem, setDetailItem] = useState(null);
   const [view, setView] = useState('month');
   const [dayKey, setDayKey] = useState(() => keyFromDate(new Date()));
 
@@ -369,12 +370,105 @@ export default function ScheduleApp({ initialMeetings, initialError }) {
               onNext={() => setDayKey(keyFromDate(addDays(new Date(`${dayKey}T00:00:00`), 1)))}
               onToday={() => setDayKey(keyFromDate(new Date()))}
               onAdd={() => openCreate(dayKey)}
-              onEdit={openEdit}
-              onDelete={handleDelete}
+              onOpen={setDetailItem}
             />
           )}
         </section>
       </div>
+
+      {detailItem && (
+        <div className="overlay" onClick={() => setDetailItem(null)}>
+          <div className="modal detail-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-head">
+              <div>
+                <h2 className="form-title">{detailItem.title}</h2>
+                <p className="muted">
+                  {detailItem.type === 'zoom' ? 'Zoom Meeting' : 'Rapat'}
+                </p>
+              </div>
+              <button
+                type="button"
+                className="btn small ghost"
+                onClick={() => setDetailItem(null)}
+                aria-label="Tutup"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="detail-fields">
+              <div className="detail-row">
+                <span className="detail-label">Tanggal</span>
+                <span>{formatDateLabel(detailItem.dayKey)}</span>
+              </div>
+              <div className="detail-row">
+                <span className="detail-label">Jam</span>
+                <span>
+                  {timeLabel(detailItem.start_at)}–{timeLabel(detailItem.end_at)}
+                </span>
+              </div>
+              {detailItem.type === 'zoom' && detailItem.link && (
+                <div className="detail-row">
+                  <span className="detail-label">Link</span>
+                  <a
+                    className="detail-link"
+                    href={detailItem.link}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {detailItem.link}
+                  </a>
+                </div>
+              )}
+              {detailItem.type === 'rapat' && detailItem.location && (
+                <div className="detail-row">
+                  <span className="detail-label">Ruangan</span>
+                  <span>{detailItem.location}</span>
+                </div>
+              )}
+              {detailItem.notes && (
+                <div className="detail-row">
+                  <span className="detail-label">Catatan</span>
+                  <span>{detailItem.notes}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="detail-actions">
+              <a
+                className="btn primary"
+                href={waShareUrl(detailItem)}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Share WA
+              </a>
+              <button
+                type="button"
+                className="btn ghost"
+                onClick={() => {
+                  const item = detailItem;
+                  setDetailItem(null);
+                  openEdit(item);
+                }}
+              >
+                Edit
+              </button>
+              <button
+                type="button"
+                className="btn danger"
+                onClick={async () => {
+                  const item = detailItem;
+                  setDetailItem(null);
+                  await handleDelete(item);
+                }}
+              >
+                Hapus
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {modalOpen && (
         <div className="overlay" onClick={closeModal}>
@@ -583,7 +677,7 @@ function nowWallClock() {
   };
 }
 
-function DayAgenda({ dayKey, events, onBack, onPrev, onNext, onToday, onAdd, onEdit, onDelete }) {
+function DayAgenda({ dayKey, events, onBack, onPrev, onNext, onToday, onAdd, onOpen }) {
   const hours = Array.from({ length: 24 }, (_, i) => i);
   const now = nowWallClock();
   const showNow = now.dayKey === dayKey;
@@ -633,65 +727,28 @@ function DayAgenda({ dayKey, events, onBack, onPrev, onNext, onToday, onAdd, onE
             {events.map((item) => {
               const top = item.startMin * PX_PER_MINUTE;
               const height = Math.max((item.endMin - item.startMin) * PX_PER_MINUTE, 34);
-              const compact = height < 92;
+              const compact = height < 64;
               const { lane = 0, columns = 1 } = overlap.get(item.id) || {};
               const widthPct = 100 / columns;
               const leftPct = lane * widthPct;
               return (
-                <div
+                <button
                   key={item.id}
-                  className={`agenda-event ${item.type}${compact ? ' compact' : ' tall'}`}
+                  type="button"
+                  className={`agenda-event ${item.type}${compact ? ' compact' : ''}`}
                   style={{
                     top: `${top}px`,
                     height: `${height}px`,
                     left: `calc(${leftPct}% + 2px)`,
                     width: `calc(${widthPct}% - 8px)`,
                   }}
+                  onClick={() => onOpen(item)}
                 >
-                  <button type="button" className="agenda-event-body" onClick={() => onEdit(item)}>
-                    <span className="agenda-event-title">{item.title}</span>
-                    <span className="agenda-event-time">
-                      {timeLabel(item.start_at)}–{timeLabel(item.end_at)}
-                    </span>
-                    {!compact && item.type === 'rapat' && item.location && (
-                      <span className="agenda-event-sub">{item.location}</span>
-                    )}
-                  </button>
-                  <div className="agenda-event-actions">
-                    {item.type === 'zoom' && item.link && (
-                      <a
-                        className="agenda-action-btn agenda-action-link"
-                        href={item.link}
-                        target="_blank"
-                        rel="noreferrer"
-                        aria-label="Buka Zoom"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        {item.link}
-                      </a>
-                    )}
-                    <a
-                      className="agenda-action-btn"
-                      href={waShareUrl(item)}
-                      target="_blank"
-                      rel="noreferrer"
-                      aria-label="Bagikan ke WhatsApp"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <span className="agenda-action-icon" aria-hidden="true">↗</span>
-                      Share
-                    </a>
-                    <button
-                      type="button"
-                      className="agenda-action-btn danger"
-                      aria-label="Hapus jadwal"
-                      onClick={() => onDelete(item)}
-                    >
-                      <span className="agenda-action-icon" aria-hidden="true">✕</span>
-                      Hapus
-                    </button>
-                  </div>
-                </div>
+                  <span className="agenda-event-title">{item.title}</span>
+                  <span className="agenda-event-time">
+                    {timeLabel(item.start_at)}–{timeLabel(item.end_at)}
+                  </span>
+                </button>
               );
             })}
             {showNow && (
