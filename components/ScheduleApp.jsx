@@ -632,7 +632,7 @@ function DayAgenda({ dayKey, events, onBack, onPrev, onNext, onToday, onAdd, onE
             ))}
             {events.map((item) => {
               const top = item.startMin * PX_PER_MINUTE;
-              const height = Math.max((item.endMin - item.startMin) * PX_PER_MINUTE, 26);
+              const height = Math.max((item.endMin - item.startMin) * PX_PER_MINUTE, 34);
               const compact = height < 92;
               const { lane = 0, columns = 1 } = overlap.get(item.id) || {};
               const widthPct = 100 / columns;

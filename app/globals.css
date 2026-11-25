@@ -670,31 +670,37 @@ body {
   gap: 3px;
 }
 
+/* Blok pendek: tombol jadi ikon bulat yang jelas & mudah disentuh */
 .agenda-event.compact .agenda-event-actions {
-  position: static;
-  flex-wrap: wrap;
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  flex-wrap: nowrap;
   gap: 4px;
   margin: 0;
 }
 
-.agenda-event.compact .agenda-action-btn {
-  min-height: 24px;
-  padding: 3px 8px;
-  font-size: 0;
-  gap: 0;
+.agenda-event.compact .agenda-event-body {
+  padding-right: 84px;
 }
 
-.agenda-event.compact .agenda-action-link {
-  flex: 1 1 100%;
-  font-size: 10px;
-  min-height: 0;
-  padding: 2px 6px;
-  white-space: normal;
-  word-break: break-all;
+.agenda-event.compact .agenda-action-btn {
+  width: 26px;
+  height: 26px;
+  min-height: 26px;
+  padding: 0;
+  justify-content: center;
+  font-size: 0;
+  gap: 0;
+  background: rgba(255, 255, 255, 0.32);
 }
 
 .agenda-event.compact .agenda-action-icon {
-  font-size: 12px;
+  font-size: 13px;
+}
+
+.agenda-event.compact .agenda-action-link {
+  display: none;
 }
 
 .agenda-now {
