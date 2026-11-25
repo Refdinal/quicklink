@@ -548,8 +548,6 @@ body {
 
 .agenda-event {
   position: absolute;
-  left: 4px;
-  right: 8px;
   border-radius: 8px;
   padding: 6px 8px 8px;
   overflow: hidden;
@@ -557,6 +555,7 @@ body {
   flex-direction: column;
   gap: 6px;
   border-left: 4px solid transparent;
+  box-sizing: border-box;
 }
 
 .agenda-event.rapat {
@@ -1032,11 +1031,6 @@ body {
 
   .agenda-grid {
     grid-template-columns: 48px 1fr;
-  }
-
-  .agenda-event {
-    left: 2px;
-    right: 4px;
   }
 
   .agenda-action-btn {

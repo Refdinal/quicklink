@@ -520,6 +520,52 @@ function waShareUrl(item) {
   return `https://wa.me/${WA_NUMBER}?text=${text}`;
 }
 
+// Susun kegiatan yang berhimpit ke kolom (lane) seperti Google Calendar.
+// Mengembalikan map id -> { lane, columns }.
+function computeOverlapLayout(events) {
+  const layout = new Map();
+  const sorted = [...events].sort(
+    (a, b) => a.startMin - b.startMin || b.endMin - a.endMin
+  );
+
+  let group = [];
+  let groupEnd = -1;
+
+  const flush = () => {
+    if (group.length === 0) return;
+    // lane per event dalam grup
+    const laneEnds = [];
+    const lanes = new Map();
+    for (const item of group) {
+      let lane = laneEnds.findIndex((end) => end <= item.startMin);
+      if (lane === -1) {
+        lane = laneEnds.length;
+        laneEnds.push(item.endMin);
+      } else {
+        laneEnds[lane] = item.endMin;
+      }
+      lanes.set(item.id, lane);
+    }
+    const columns = laneEnds.length;
+    for (const item of group) {
+      layout.set(item.id, { lane: lanes.get(item.id), columns });
+    }
+    group = [];
+    groupEnd = -1;
+  };
+
+  for (const item of sorted) {
+    if (group.length > 0 && item.startMin >= groupEnd) {
+      flush();
+    }
+    group.push(item);
+    groupEnd = Math.max(groupEnd, item.endMin);
+  }
+  flush();
+
+  return layout;
+}
+
 function nowWallClock() {
   const parts = new Intl.DateTimeFormat('en-CA', {
     timeZone: APP_TIME_ZONE,
@@ -541,6 +587,7 @@ function DayAgenda({ dayKey, events, onBack, onPrev, onNext, onToday, onAdd, onE
   const hours = Array.from({ length: 24 }, (_, i) => i);
   const now = nowWallClock();
   const showNow = now.dayKey === dayKey;
+  const overlap = computeOverlapLayout(events);
 
   return (
     <div className="agenda">
@@ -587,11 +634,19 @@ function DayAgenda({ dayKey, events, onBack, onPrev, onNext, onToday, onAdd, onE
               const top = item.startMin * PX_PER_MINUTE;
               const height = Math.max((item.endMin - item.startMin) * PX_PER_MINUTE, 26);
               const compact = height < 92;
+              const { lane = 0, columns = 1 } = overlap.get(item.id) || {};
+              const widthPct = 100 / columns;
+              const leftPct = lane * widthPct;
               return (
                 <div
                   key={item.id}
                   className={`agenda-event ${item.type}${compact ? ' compact' : ''}`}
-                  style={{ top: `${top}px`, height: `${height}px` }}
+                  style={{
+                    top: `${top}px`,
+                    height: `${height}px`,
+                    left: `calc(${leftPct}% + 2px)`,
+                    width: `calc(${widthPct}% - 8px)`,
+                  }}
                 >
                   <button type="button" className="agenda-event-body" onClick={() => onEdit(item)}>
                     <span className="agenda-event-title">{item.title}</span>
