@@ -8,6 +8,7 @@ const MONTHS = [
 ];
 const WEEKDAYS = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
 const DEFAULT_DURATION_MINUTES = 180;
+const APP_TIME_ZONE = process.env.NEXT_PUBLIC_APP_TIME_ZONE || 'Asia/Jakarta';
 
 const EMPTY_FORM = {
   title: '',
@@ -32,18 +33,34 @@ function keyFromDate(date) {
   return dateKeyFromParts(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
-function keyFromIso(iso) {
-  return iso ? String(iso).slice(0, 10) : '';
+// Tanggal dari database (ISO UTC) sebelumnya disimpan oleh backend sebagai jam
+// dinding aplikasi, jadi dibaca apa adanya (tanpa konversi timezone browser).
+function wallClockParts(iso) {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) {
+    return { dayKey: '', minutes: 0, label: '' };
+  }
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'UTC',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(date);
+  const get = (type) => parts.find((p) => p.type === type)?.value;
+  const dayKey = `${get('year')}-${get('month')}-${get('day')}`;
+  const minutes = Number(get('hour')) * 60 + Number(get('minute'));
+  return { dayKey, minutes, label: `${get('hour')}:${get('minute')}` };
 }
 
-function minutesOfDay(iso) {
-  const date = new Date(iso);
-  return date.getHours() * 60 + date.getMinutes();
+function keyFromIso(iso) {
+  return wallClockParts(iso).dayKey;
 }
 
 function timeLabel(iso) {
-  const date = new Date(iso);
-  return `${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  return wallClockParts(iso).label;
 }
 
 function formatDuration(minutes) {
@@ -83,13 +100,13 @@ function monthGrid(year, month) {
 function buildEvents(meetings) {
   return meetings
     .map((meeting) => {
-      const start = new Date(meeting.start_at);
-      const end = new Date(meeting.end_at);
+      const start = wallClockParts(meeting.start_at);
+      const end = wallClockParts(meeting.end_at);
       return {
         ...meeting,
-        dayKey: keyFromDate(start),
-        startMin: start.getHours() * 60 + start.getMinutes(),
-        endMin: Math.max(end.getHours() * 60 + end.getMinutes(), start.getHours() * 60 + start.getMinutes() + 1),
+        dayKey: start.dayKey,
+        startMin: start.minutes,
+        endMin: Math.max(end.minutes, start.minutes + 1),
       };
     })
     .sort((a, b) => a.startMin - b.startMin);
@@ -121,7 +138,12 @@ export default function ScheduleApp({ initialMeetings, initialError }) {
   const upcoming = useMemo(() => {
     const now = Date.now();
     return events
-      .filter((item) => new Date(item.end_at).getTime() >= now)
+      .filter((item) => {
+        const match = String(item.end_at).match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})/);
+        if (!match) return false;
+        const wallUtc = Date.UTC(+match[1], +match[2] - 1, +match[3], +match[4], +match[5], +match[6]);
+        return wallUtc >= now;
+      })
       .slice(0, 5);
   }, [events]);
 
@@ -387,7 +409,7 @@ export default function ScheduleApp({ initialMeetings, initialError }) {
                       <span>
                         <strong>{item.title}</strong>
                         <span className="muted">
-                          {new Date(item.start_at).toLocaleDateString('id-ID', {
+                          {new Date(`${item.dayKey}T00:00:00`).toLocaleDateString('id-ID', {
                             day: 'numeric', month: 'short', year: 'numeric',
                           })}{' '}
                           {timeLabel(item.start_at)}–{timeLabel(item.end_at)}
@@ -513,9 +535,18 @@ export default function ScheduleApp({ initialMeetings, initialError }) {
 
 function DayView({ dayKey, events, onEdit, onDelete, onAdd }) {
   const hours = Array.from({ length: 24 }, (_, i) => i);
-  const now = new Date();
-  const showNow = keyFromDate(now) === dayKey;
-  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const nowParts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: APP_TIME_ZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(new Date());
+  const nowGet = (type) => nowParts.find((p) => p.type === type)?.value;
+  const showNow = `${nowGet('year')}-${nowGet('month')}-${nowGet('day')}` === dayKey;
+  const nowMin = Number(nowGet('hour')) * 60 + Number(nowGet('minute'));
 
   return (
     <div className="day-view">
