@@ -8,7 +8,10 @@ export async function GET() {
   try {
     const sql = db();
     const meetings = await sql`
-      SELECT id, title, type, location, link, notes, start_at, end_at, created_at, updated_at
+      SELECT id, title, type, location, link, notes,
+        to_char(start_at, 'YYYY-MM-DD"T"HH24:MI:SS') AS start_at,
+        to_char(end_at, 'YYYY-MM-DD"T"HH24:MI:SS') AS end_at,
+        created_at, updated_at
       FROM meetings
       ORDER BY start_at ASC
     `;
@@ -38,7 +41,10 @@ export async function POST(request) {
         ${meeting.start_at},
         ${meeting.end_at}
       )
-      RETURNING id, title, type, location, link, notes, start_at, end_at, created_at, updated_at
+      RETURNING id, title, type, location, link, notes,
+        to_char(start_at, 'YYYY-MM-DD"T"HH24:MI:SS') AS start_at,
+        to_char(end_at, 'YYYY-MM-DD"T"HH24:MI:SS') AS end_at,
+        created_at, updated_at
     `;
     return NextResponse.json({ meeting: rows[0] }, { status: 201 });
   } catch (error) {

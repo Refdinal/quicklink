@@ -35,7 +35,10 @@ export async function PUT(request, { params }) {
           end_at = ${meeting.end_at},
           updated_at = now()
       WHERE id = ${meetingId}
-      RETURNING id, title, type, location, link, notes, start_at, end_at, created_at, updated_at
+      RETURNING id, title, type, location, link, notes,
+        to_char(start_at, 'YYYY-MM-DD"T"HH24:MI:SS') AS start_at,
+        to_char(end_at, 'YYYY-MM-DD"T"HH24:MI:SS') AS end_at,
+        created_at, updated_at
     `;
 
     if (rows.length === 0) {

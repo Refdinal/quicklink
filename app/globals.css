@@ -538,20 +538,141 @@ body {
   }
 }
 
-@media (max-width: 560px) {
-  .field-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .chip-title {
-    display: none;
+@media (max-width: 640px) {
+  .container.wide {
+    padding: 0;
   }
 
   .topbar {
     flex-wrap: wrap;
+    padding: 14px 14px 0;
+    margin-bottom: 10px;
+  }
+
+  .topbar h1 {
+    font-size: 19px;
+  }
+
+  .cal-actions .btn.small {
+    padding: 7px 10px;
+  }
+
+  .calendar.card {
+    border: none;
+    border-radius: 0;
+    padding: 0 2px 8px;
+    background: transparent;
+  }
+
+  .cal-head {
+    padding: 0 12px;
+    margin-bottom: 8px;
   }
 
   .cal-month {
-    font-size: 17px;
+    font-size: 16px;
+  }
+
+  .month-weekdays {
+    font-size: 11px;
+    padding: 0 0 4px;
+  }
+
+  .month-grid {
+    grid-auto-rows: 64px;
+    border-left: none;
+    border-top: none;
+  }
+
+  .month-cell {
+    padding: 2px;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    border-radius: 8px;
+  }
+
+  .month-cell.outside {
+    opacity: 0.25;
+  }
+
+  .cell-day {
+    font-size: 11px;
+    width: 18px;
+    height: 18px;
+  }
+
+  .cell-add {
+    opacity: 1;
+    font-size: 14px;
+    width: 18px;
+    height: 18px;
+  }
+
+  .cell-head {
+    padding: 1px;
+  }
+
+  .chip {
+    font-size: 9px;
+    padding: 1px 3px;
+    gap: 2px;
+    border-radius: 3px;
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .chip-time {
+    display: none;
+  }
+
+  .chip-title {
+    display: block;
+  }
+
+  /* Modal as bottom sheet */
+  .overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .modal {
+    max-width: 100%;
+    max-height: 92vh;
+    border-radius: 18px 18px 0 0;
+    padding: 18px 16px calc(18px + env(safe-area-inset-bottom));
+    animation: sheet-up 0.22s ease-out;
+  }
+
+  @keyframes sheet-up {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  .detail-item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .detail-item .item-actions {
+    justify-content: flex-end;
+  }
+
+  .field-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .input {
+    font-size: 16px;
+  }
+
+  .login {
+    max-width: 100%;
   }
 }

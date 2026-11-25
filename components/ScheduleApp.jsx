@@ -33,27 +33,20 @@ function keyFromDate(date) {
   return dateKeyFromParts(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
-// Tanggal dari database (ISO UTC) disimpan backend sebagai jam dinding
-// aplikasi, jadi dibaca apa adanya tanpa konversi timezone browser.
-function wallClockParts(iso) {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) {
+// Backend mengirim jam dinding polos "YYYY-MM-DDTHH:mm:ss" (tanpa zona).
+// Dibaca apa adanya agar tidak dikonversi ke timezone browser/server.
+const LOCAL_DATETIME = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?/;
+
+function wallClockParts(value) {
+  const match = String(value || '').match(LOCAL_DATETIME);
+  if (!match) {
     return { dayKey: '', minutes: 0, label: '' };
   }
-  const parts = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'UTC',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    hourCycle: 'h23',
-  }).formatToParts(date);
-  const get = (type) => parts.find((p) => p.type === type)?.value;
+  const [, year, month, day, hour, minute] = match;
   return {
-    dayKey: `${get('year')}-${get('month')}-${get('day')}`,
-    minutes: Number(get('hour')) * 60 + Number(get('minute')),
-    label: `${get('hour')}:${get('minute')}`,
+    dayKey: `${year}-${month}-${day}`,
+    minutes: Number(hour) * 60 + Number(minute),
+    label: `${hour}:${minute}`,
   };
 }
 
